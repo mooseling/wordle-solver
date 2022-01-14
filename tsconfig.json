@@ -1,0 +1,8 @@
+{
+    "compilerOptions": {
+    "module": "es6",
+    "lib": ["esnext", "dom"],
+    "target": "esnext",
+    "noEmit": true
+  }
+}
