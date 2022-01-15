@@ -6,22 +6,24 @@ import {dictionary} from './wordle-dictionary.ts';
 // knowledge is what we have learned so far about the word
 // "position" is where in the final word a letter appears
 type Knowledge = {
-  positionedLetters:PositionedLetter[], // Letters that are present and we know their position
-  vagueLetters:PositionedLetter[] // letters are present but we only know a wrong position
-  absentLetters:string[] // Letters we know are not in the solution at all
+  positionedLetters?:[string, number][], // Letters that are present and we know their position
+  vagueLetters?:[string, number][] // letters are present but we only know a wrong position
+  absentLetters?:string[] // Letters we know are not in the solution at all
+  letterCounts?:[string, number][] // Letters we know the number of
 }
-type PositionedLetter = [string, number]
 
 export class Solver {
-  private positionedLetters:PositionedLetter[] // Letters that are present and we know their position
-  private vagueLetters:PositionedLetter[] // letters are present but we only know a wrong position
+  private positionedLetters:[string, number][] // Letters that are present and we know their position
+  private vagueLetters:[string, number][] // letters are present but we only know a wrong position
   private absentLetters:string[] // Letters we know are not in the solution at all
+  private letterCounts:[string, number][] // Letters we know the number of
   private remainingWords: string[]
 
   constructor() {
     this.positionedLetters = [];
     this.vagueLetters = [];
     this.absentLetters = [];
+    this.letterCounts = [];
     this.remainingWords = dictionary.slice();
   }
 
@@ -32,10 +34,15 @@ export class Solver {
 
 
   // Input the results from a guess
-  addToKnowledge({positionedLetters, vagueLetters, absentLetters}:Knowledge): void {
-    this.positionedLetters.push(...positionedLetters);
-    this.vagueLetters.push(...vagueLetters);
-    this.absentLetters.push(...absentLetters);
+  addToKnowledge({positionedLetters, vagueLetters, absentLetters, letterCounts}:Knowledge): void {
+    if (positionedLetters)
+      this.positionedLetters.push(...positionedLetters);
+    if (vagueLetters)
+      this.vagueLetters.push(...vagueLetters);
+    if (absentLetters)
+      this.absentLetters.push(...absentLetters);
+    if (letterCounts)
+      this.letterCounts.push(...letterCounts);
     this.filterRemainingWords();
   }
 
@@ -48,6 +55,8 @@ export class Solver {
       if (!this.matchesPositionedLetters(word))
         return;
       if (!this.matchesVagueLetters(word))
+        return;
+      if (!this.matchesLetterCounts(word))
         return;
 
       validWords.push(word);
@@ -67,10 +76,18 @@ export class Solver {
     return this.positionedLetters.every(([letter, position]) => word[position] === letter);
   }
 
+
   matchesVagueLetters(word:string): boolean {
     if (!this.vagueLetters.length)
       return true;
     // Don't forget, vague letters tell us a position that a letter is NOT in
     return this.vagueLetters.every(([letter, position]) => word.includes(letter) && word[position] !== letter);
+  }
+
+
+  matchesLetterCounts(word:string): boolean {
+    if (!this.letterCounts.length)
+      return true;
+    return this.letterCounts.every(([letter, count]) => word.split(letter).length === count + 1);
   }
 }
