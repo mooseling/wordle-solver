@@ -13,6 +13,7 @@ type Knowledge = {
 }
 
 export class Solver {
+  private guesses:number;
   private positionedLetters:[string, number][] // Letters that are present and we know their position
   private vagueLetters:[string, number][] // letters are present but we only know a wrong position
   private absentLetters:string[] // Letters we know are not in the solution at all
@@ -20,6 +21,7 @@ export class Solver {
   private remainingWords: string[]
 
   constructor() {
+    this.guesses = 0;
     this.positionedLetters = [];
     this.vagueLetters = [];
     this.absentLetters = [];
@@ -29,6 +31,11 @@ export class Solver {
 
   // Find the best word to guess from the remaining words
   getNextGuess(): string {
+    this.guesses++;
+    if (this.guesses === 1)
+      return 'teach'; // Seems like a good first guess
+    if (this.remainingWords.length === 1 || this.guesses === 6)
+      return this.remainingWords[0];
     return this.remainingWords[0];
   }
 
