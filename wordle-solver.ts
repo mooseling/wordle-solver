@@ -1,4 +1,5 @@
-import {dictionary} from './wordle-dictionary.js';
+// @ts-ignore
+import {dictionary} from './wordle-dictionary.ts';
 
 // Everything is lower case!
 
