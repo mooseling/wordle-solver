@@ -20,6 +20,11 @@ export class Solver {
   private letterCounts:[string, number][] // Letters we know the number of
   private remainingWords: string[]
 
+  // The trick to Wordle is guessing words that you know are wrong, but tell you something useful
+  // All indicator words must not contain letters we know are absent
+  private strongIndicators: string[] // Contain no known letters
+  private weakIndicators: string[] // Contain known letters, ignore positions
+
   constructor() {
     this.guesses = 0;
     this.positionedLetters = [];
@@ -27,6 +32,8 @@ export class Solver {
     this.absentLetters = [];
     this.letterCounts = [];
     this.remainingWords = dictionary.slice();
+    this.weakIndicators = dictionary.slice();
+    this.strongIndicators = dictionary.slice();
   }
 
   // Find the best word to guess from the remaining words
@@ -36,6 +43,10 @@ export class Solver {
       return 'teach'; // Seems like a good first guess
     if (this.remainingWords.length === 1 || this.guesses === 6)
       return this.remainingWords[0];
+    if (this.strongIndicators.length)
+      return this.strongIndicators[0];
+    if (this.weakIndicators.length)
+      return this.weakIndicators[0];
     return this.remainingWords[0];
   }
 
@@ -51,6 +62,8 @@ export class Solver {
     if (letterCounts)
       this.letterCounts.push(...letterCounts);
     this.filterRemainingWords();
+    this.filterStrongIndicatorWords();
+    this.filterWeakIndicatorWords();
   }
 
 
@@ -62,6 +75,26 @@ export class Solver {
       && this.matchesLetterCounts(word)
     );
   }
+
+
+  // Strong indicators are words with no known letters and no absent letters
+  // They help us find new letters entirely
+  filterStrongIndicatorWords(): void {
+    this.strongIndicators = this.strongIndicators.filter(word =>
+      !this.includesAbsentLetters(word)
+      && !this.includesPositionedLetters(word)
+      && !this.includesVagueLetters(word)
+    );
+  }
+
+
+  // Weak indicators are words with known letters, but not necessarily in the right position
+  filterWeakIndicatorWords(): void {
+    this.weakIndicators = this.weakIndicators.filter(word =>
+      !this.includesAbsentLetters(word)
+      && this.includesPositionedLetters(word)
+      && this.includesVagueLetters(word)
+    );
   }
 
 
@@ -77,11 +110,21 @@ export class Solver {
   }
 
 
+  includesPositionedLetters(word:string) {
+    return this.positionedLetters.some(([letter]) => word.includes(letter));
+  }
+
+
   matchesVagueLetters(word:string): boolean {
     if (!this.vagueLetters.length)
       return true;
     // Don't forget, vague letters tell us a position that a letter is NOT in
     return this.vagueLetters.every(([letter, position]) => word.includes(letter) && word[position] !== letter);
+  }
+
+
+  includesVagueLetters(word:string) {
+    return this.vagueLetters.some(([letter]) => word.includes(letter));
   }
 
 
