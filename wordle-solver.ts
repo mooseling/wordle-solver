@@ -55,20 +55,13 @@ export class Solver {
 
 
   filterRemainingWords(): void {
-    const validWords:string[] = [];
-    this.remainingWords.forEach(word => {
-      if (this.includesAbsentLetters(word))
-        return;
-      if (!this.matchesPositionedLetters(word))
-        return;
-      if (!this.matchesVagueLetters(word))
-        return;
-      if (!this.matchesLetterCounts(word))
-        return;
-
-      validWords.push(word);
-    });
-    this.remainingWords = validWords;
+    this.remainingWords = this.remainingWords.filter(word =>
+      !this.includesAbsentLetters(word)
+      && this.matchesPositionedLetters(word)
+      && this.matchesVagueLetters(word)
+      && this.matchesLetterCounts(word)
+    );
+  }
   }
 
 
