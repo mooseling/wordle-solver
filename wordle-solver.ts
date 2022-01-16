@@ -133,7 +133,7 @@ export class Solver {
 
 
   includesPositionedLetters(word:string) {
-    return this.positionedLetters.some(([letter]) => word.includes(letter));
+    return this.positionedLetters.every(([letter]) => word.includes(letter));
   }
 
 
@@ -146,7 +146,7 @@ export class Solver {
 
 
   includesVagueLetters(word:string) {
-    return this.vagueLetters.some(([letter]) => word.includes(letter));
+    return this.vagueLetters.every(([letter]) => word.includes(letter));
   }
 
 
