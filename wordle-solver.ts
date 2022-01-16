@@ -52,30 +52,33 @@ export class Solver {
       const letterResult = result[i];
       const letter = result[i + 1];
       const position = i / 2;
-      const letterCounts:{[letter:string]: number} = {};
+      const lettersFound:{[letter:string]: number} = {};
 
       switch (letterResult) {
         // In all cases we check whether we already know this thing
         case '+': // Letter is in correct position
           if (!this.positionedLetters.some(([_letter, _position]) => _letter === letter && _position === position))
             this.positionedLetters.push([letter, position]);
-          if (letterCounts[letter])
-            letterCounts[letter]++;
+          if (lettersFound[letter])
+            lettersFound[letter]++;
           else
-            letterCounts[letter] = 1;
+            lettersFound[letter] = 1;
             break;
         case '~': // Letter is present but in wrong position
           if (!this.vagueLetters.some(([_letter, _position]) => _letter === letter && _position === position))
             this.vagueLetters.push([letter, position]);
-          if (letterCounts[letter])
-            letterCounts[letter]++;
+          if (lettersFound[letter])
+            lettersFound[letter]++;
           else
-            letterCounts[letter] = 1;
+            lettersFound[letter] = 1;
           break;
         case '-': // Letter is found to be absent
-          if (!this.absentLetters.some(_letter => _letter === letter))
+          // If we've already seen this letter, we now know how many there are
+          if (lettersFound[letter])
+            this.letterCounts[letter] = lettersFound[letter];
+          else if (!this.absentLetters.some(_letter => _letter === letter))
             this.absentLetters.push(letter);
-            break;
+          break;
       }
     }
 
@@ -148,6 +151,11 @@ export class Solver {
 
 
   matchesLetterCounts(word:string): boolean {
+    for (const letter in this.letterCounts) {
+      const countInWord = word.split(letter).length - 1;
+      if (countInWord !== this.letterCounts[letter])
+        return false;
+    }
     return true;
   }
 }
