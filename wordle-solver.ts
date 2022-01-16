@@ -92,12 +92,6 @@ export class Solver {
       }
     }
 
-    for (const letter in letterCounts) {
-      const count = letterCounts[letter];
-      if (count > 1)
-        letterCounts[letter] = count;
-    }
-
     this.addToKnowledge({positionedLetters, vagueLetters, absentLetters, letterCounts});
   }
 
@@ -185,11 +179,6 @@ export class Solver {
 
 
   matchesLetterCounts(word:string): boolean {
-    for (const letter in this.letterCounts) {
-      const count = this.letterCounts[letter];
-      if (!(word.split(letter).length >= count + 1))
-        return false;
-    }
     return true;
   }
 }
