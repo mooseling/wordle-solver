@@ -53,6 +53,55 @@ export class Solver {
 
   // Take in the result of the last guess and turn it into Knowledge
   // result is a 10-character string with letters and symbols for their result
+  // Eg '+t-e~a-c-h':
+  // t is correct, a is present but in a different position, e, c, and h are absent
+  interpretResult(result:string): void {
+    const positionedLetters:[string, number][] = [];
+    const vagueLetters:[string, number][] = [];
+    const absentLetters:string[] = [];
+    const letterCounts:{[letter:string]: number} = {}
+
+    for (let i = 0; i < result.length; i += 2) {
+      const letterResult = result[i];
+      const letter = result[i + 1];
+      const position = i / 2;
+      const letterCounts:{[letter:string]: number} = {};
+
+      switch (letterResult) {
+        // In all cases we check whether we already know this thing
+        case '+': // Letter is in correct position
+          if (!this.positionedLetters.some(([_letter, _position]) => _letter === letter && _position === position))
+            positionedLetters.push([letter, position]);
+          if (letterCounts[letter])
+            letterCounts[letter]++;
+          else
+            letterCounts[letter] = 1;
+            break;
+        case '~': // Letter is present but in wrong position
+          if (!this.vagueLetters.some(([_letter, _position]) => _letter === letter && _position === position))
+            vagueLetters.push([letter, position]);
+          if (letterCounts[letter])
+            letterCounts[letter]++;
+          else
+            letterCounts[letter] = 1;
+          break;
+        case '-': // Letter is found to be absent
+          if (!this.absentLetters.some(_letter => _letter === letter))
+            absentLetters.push(letter);
+            break;
+      }
+    }
+
+    for (const letter in letterCounts) {
+      const count = letterCounts[letter];
+      if (count > 1)
+        letterCounts[letter] = count;
+    }
+
+    this.addToKnowledge({positionedLetters, vagueLetters, absentLetters, letterCounts});
+  }
+
+
   // Input the results from a guess
   addToKnowledge({positionedLetters, vagueLetters, absentLetters, letterCounts}:Knowledge): void {
     if (positionedLetters)
