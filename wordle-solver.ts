@@ -9,7 +9,7 @@ type Knowledge = {
   positionedLetters?:[string, number][], // Letters that are present and we know their position
   vagueLetters?:[string, number][] // letters are present but we only know a wrong position
   absentLetters?:string[] // Letters we know are not in the solution at all
-  letterCounts?:[string, number][] // Letters we know the number of
+  letterCounts?:{[letter:string]: number} // Letters we know the number of
 }
 
 export class Solver {
@@ -17,7 +17,7 @@ export class Solver {
   private positionedLetters:[string, number][] // Letters that are present and we know their position
   private vagueLetters:[string, number][] // letters are present but we only know a wrong position
   private absentLetters:string[] // Letters we know are not in the solution at all
-  private letterCounts:[string, number][] // Letters we know the number of
+  private letterCounts:{[letter:string]: number} // Letters we know the number of
   private remainingWords: string[]
 
   // The trick to Wordle is guessing words that you know are wrong, but tell you something useful
@@ -30,7 +30,7 @@ export class Solver {
     this.positionedLetters = [];
     this.vagueLetters = [];
     this.absentLetters = [];
-    this.letterCounts = [];
+    this.letterCounts = {};
     this.remainingWords = dictionary.slice();
     this.weakIndicators = dictionary.slice();
     this.strongIndicators = dictionary.slice();
@@ -51,6 +51,8 @@ export class Solver {
   }
 
 
+  // Take in the result of the last guess and turn it into Knowledge
+  // result is a 10-character string with letters and symbols for their result
   // Input the results from a guess
   addToKnowledge({positionedLetters, vagueLetters, absentLetters, letterCounts}:Knowledge): void {
     if (positionedLetters)
@@ -129,8 +131,11 @@ export class Solver {
 
 
   matchesLetterCounts(word:string): boolean {
-    if (!this.letterCounts.length)
-      return true;
-    return this.letterCounts.every(([letter, count]) => word.split(letter).length === count + 1);
+    for (const letter in this.letterCounts) {
+      const count = this.letterCounts[letter];
+      if (!(word.split(letter).length >= count + 1))
+        return false;
+    }
+    return true;
   }
 }
