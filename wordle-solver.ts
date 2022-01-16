@@ -3,14 +3,6 @@ import {dictionary} from './wordle-dictionary.ts';
 
 // Everything is lower case!
 
-// knowledge is what we have learned so far about the word
-// "position" is where in the final word a letter appears
-type Knowledge = {
-  positionedLetters?:[string, number][], // Letters that are present and we know their position
-  vagueLetters?:[string, number][] // letters are present but we only know a wrong position
-  absentLetters?:string[] // Letters we know are not in the solution at all
-  letterCounts?:{[letter:string]: number} // Letters we know the number of
-}
 
 export class Solver {
   private guesses:number;
@@ -56,11 +48,6 @@ export class Solver {
   // Eg '+t-e~a-c-h':
   // t is correct, a is present but in a different position, e, c, and h are absent
   interpretResult(result:string): void {
-    const positionedLetters:[string, number][] = [];
-    const vagueLetters:[string, number][] = [];
-    const absentLetters:string[] = [];
-    const letterCounts:{[letter:string]: number} = {}
-
     for (let i = 0; i < result.length; i += 2) {
       const letterResult = result[i];
       const letter = result[i + 1];
@@ -71,7 +58,7 @@ export class Solver {
         // In all cases we check whether we already know this thing
         case '+': // Letter is in correct position
           if (!this.positionedLetters.some(([_letter, _position]) => _letter === letter && _position === position))
-            positionedLetters.push([letter, position]);
+            this.positionedLetters.push([letter, position]);
           if (letterCounts[letter])
             letterCounts[letter]++;
           else
@@ -79,7 +66,7 @@ export class Solver {
             break;
         case '~': // Letter is present but in wrong position
           if (!this.vagueLetters.some(([_letter, _position]) => _letter === letter && _position === position))
-            vagueLetters.push([letter, position]);
+            this.vagueLetters.push([letter, position]);
           if (letterCounts[letter])
             letterCounts[letter]++;
           else
@@ -87,30 +74,12 @@ export class Solver {
           break;
         case '-': // Letter is found to be absent
           if (!this.absentLetters.some(_letter => _letter === letter))
-            absentLetters.push(letter);
+            this.absentLetters.push(letter);
             break;
       }
     }
 
-    this.addToKnowledge({positionedLetters, vagueLetters, absentLetters, letterCounts});
-  }
-
-
-  // Input the results from a guess
-  addToKnowledge({positionedLetters, vagueLetters, absentLetters, letterCounts}:Knowledge): void {
-    if (positionedLetters)
-      this.positionedLetters.push(...positionedLetters);
-    if (vagueLetters)
-      this.vagueLetters.push(...vagueLetters);
-    if (absentLetters)
-      this.absentLetters.push(...absentLetters);
-    if (letterCounts) {
-      for (const letter in letterCounts) {
-        const count = letterCounts[letter];
-        if (!this.letterCounts[letter] || count > this.letterCounts[letter])
-          this.letterCounts[letter] = count;
-      }
-    }
+    // Now that knowldge is updated, filter our word lists
     this.filterRemainingWords();
     this.filterStrongIndicatorWords();
     this.filterWeakIndicatorWords();
