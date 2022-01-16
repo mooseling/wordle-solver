@@ -1,5 +1,7 @@
 // @ts-ignore
-import {dictionary} from './wordle-dictionary.ts';
+import {dictionary} from './wordle-dictionary.ts'; // Dictionary of legal guesses
+// @ts-ignore
+import {commonWords} from './common-words.ts'; // Smaller dictionary, more likely to be the answer
 
 // Everything is lower case!
 
@@ -10,7 +12,8 @@ export class Solver {
   private vagueLetters:[string, number][] // letters are present but we only know a wrong position
   private absentLetters:string[] // Letters we know are not in the solution at all
   private letterCounts:{[letter:string]: number} // Letters we know the number of
-  private remainingWords: string[]
+  private remainingLegalWords: string[] // We'll guess from here to narrow things down
+  private remainingCommonWords: string[] // And guess from here if we think we have a winner
 
   // The trick to Wordle is guessing words that you know are wrong, but tell you something useful
   // All indicator words must not contain letters we know are absent
@@ -23,7 +26,8 @@ export class Solver {
     this.vagueLetters = [];
     this.absentLetters = [];
     this.letterCounts = {};
-    this.remainingWords = dictionary.slice();
+    this.remainingCommonWords = commonWords.slice()
+    this.remainingLegalWords = dictionary.slice();
     this.weakIndicators = dictionary.slice();
     this.strongIndicators = dictionary.slice();
   }
@@ -33,13 +37,29 @@ export class Solver {
     this.guesses++;
     if (this.guesses === 1)
       return 'teach'; // Seems like a good first guess
-    if (this.remainingWords.length === 1 || this.guesses === 6)
-      return this.remainingWords[0];
+    if (this.guesses === 6) { // Last guess!
+      if (this.remainingCommonWords.length)
+        return this.remainingCommonWords[0]; // Best shot
+      return this.remainingLegalWords[0]; // Best shot plan B
+    }
+
+    // If there's only one common word left, guess it
+    if (this.remainingCommonWords.length === 1)
+      return this.remainingCommonWords[0];
+    // If there's only one legal word left, guess it
+    if (this.remainingLegalWords.length === 1)
+      return this.remainingLegalWords[0];
+
+    // ... Otherwise we'll try more indicator words
     if (this.strongIndicators.length)
       return this.strongIndicators[0];
     if (this.weakIndicators.length)
       return this.weakIndicators[0];
-    return this.remainingWords[0];
+
+    // If indicator words are all somehow exhausted, make best guesses
+    if (this.remainingCommonWords.length)
+      return this.remainingCommonWords[0];
+    return this.remainingLegalWords[0];
   }
 
 
@@ -90,7 +110,13 @@ export class Solver {
 
 
   filterRemainingWords(): void {
-    this.remainingWords = this.remainingWords.filter(word =>
+    this.remainingLegalWords = this.remainingLegalWords.filter(word =>
+      !this.includesAbsentLetters(word)
+      && this.matchesPositionedLetters(word)
+      && this.matchesVagueLetters(word)
+      && this.matchesLetterCounts(word)
+    );
+    this.remainingCommonWords = this.remainingCommonWords.filter(word =>
       !this.includesAbsentLetters(word)
       && this.matchesPositionedLetters(word)
       && this.matchesVagueLetters(word)
