@@ -18,3 +18,28 @@ function grade(word) {
   });
   return lettersInWord.length;
 }
+
+
+// Here's how I grab the data from the Wiktionary pages
+// The words are in tables, ranked by commonness
+// We want both the word and how common it is
+// Word frequency informs letter frequency, which we use to improve our guesses
+function getWordsFromTBody(tBody) {
+  return Array.from(tBody.children) // Extract table-rows
+    .splice(1) // Remove head
+    .map(tr => Array.from(tr.children) // Get array of table-cells
+      .splice(1) // Remove rank
+      .map(td => td.innerText) // Extract text
+      .map(text => text.split(' ')[0]) // Remove annotations
+    )
+    .filter(([word, frequency]) => word.match(/^[a-z]{5}$/)) // 5 letters, no punctuation or names
+    .map(([word, frequency]) => [word, Number(frequency)]); // Convert frequency string to number
+}
+
+
+// The common word list from wiktionary is full of weird things
+// We know for sure we can remove anything that is not in the Wordle dictionary
+// In this function we are expecting an array of words with frequencies (from the function above)
+function filterWordsAgainstDictionary(wordsToFilter, dictionary) {
+  return wordsToFilter.filter(([word]) => dictionary.includes(word));
+}
