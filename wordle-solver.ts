@@ -130,8 +130,10 @@ export class Solver {
   filterStrongIndicatorWords(): void {
     this.strongIndicators = this.strongIndicators.filter(word =>
       !this.includesAbsentLetters(word)
-      && !this.includesPositionedLetters(word)
-      && !this.includesVagueLetters(word)
+      // no positioned letters
+      && this.positionedLetters.every(([letter]) => !word.includes(letter))
+      // no vague letters
+      && this.vagueLetters.every(([letter]) => !word.includes(letter))
     );
   }
 
@@ -140,8 +142,6 @@ export class Solver {
   filterWeakIndicatorWords(): void {
     this.weakIndicators = this.weakIndicators.filter(word =>
       !this.includesAbsentLetters(word)
-      && this.includesPositionedLetters(word)
-      && this.includesVagueLetters(word)
     );
   }
 
@@ -151,6 +151,7 @@ export class Solver {
   }
 
 
+  // Does this word have the known positioned letters in the right places?
   matchesPositionedLetters(word:string): boolean {
     if (!this.positionedLetters.length)
       return true;
@@ -158,21 +159,12 @@ export class Solver {
   }
 
 
-  includesPositionedLetters(word:string) {
-    return this.positionedLetters.every(([letter]) => word.includes(letter));
-  }
-
-
+  // Does this word include vague letters, but not in positions we know are wrong?
   matchesVagueLetters(word:string): boolean {
     if (!this.vagueLetters.length)
       return true;
     // Don't forget, vague letters tell us a position that a letter is NOT in
     return this.vagueLetters.every(([letter, position]) => word.includes(letter) && word[position] !== letter);
-  }
-
-
-  includesVagueLetters(word:string) {
-    return this.vagueLetters.every(([letter]) => word.includes(letter));
   }
 
 
