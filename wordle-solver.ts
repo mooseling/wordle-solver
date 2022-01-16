@@ -61,8 +61,13 @@ export class Solver {
       this.vagueLetters.push(...vagueLetters);
     if (absentLetters)
       this.absentLetters.push(...absentLetters);
-    if (letterCounts)
-      this.letterCounts.push(...letterCounts);
+    if (letterCounts) {
+      for (const letter in letterCounts) {
+        const count = letterCounts[letter];
+        if (!this.letterCounts[letter] || count > this.letterCounts[letter])
+          this.letterCounts[letter] = count;
+      }
+    }
     this.filterRemainingWords();
     this.filterStrongIndicatorWords();
     this.filterWeakIndicatorWords();
