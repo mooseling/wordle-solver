@@ -68,11 +68,12 @@ export class Solver {
   // Eg '+t-e~a-c-h':
   // t is correct, a is present but in a different position, e, c, and h are absent
   interpretResult(result:string): void {
+    const lettersFound:{[letter:string]: number} = {};
+
     for (let i = 0; i < result.length; i += 2) {
       const letterResult = result[i];
       const letter = result[i + 1];
       const position = i / 2;
-      const lettersFound:{[letter:string]: number} = {};
 
       switch (letterResult) {
         // In all cases we check whether we already know this thing
@@ -96,7 +97,7 @@ export class Solver {
           // If we've already seen this letter, we now know how many there are
           if (lettersFound[letter])
             this.letterCounts[letter] = lettersFound[letter];
-          else if (!this.absentLetters.some(_letter => _letter === letter))
+          else if (!this.absentLetters.includes(letter))
             this.absentLetters.push(letter);
           break;
       }
@@ -128,8 +129,6 @@ export class Solver {
   // Strong indicators are words with no known letters and no absent letters
   // They help us find new letters entirely
   filterStrongIndicatorWords(): void {
-    this.strongIndicators = this.strongIndicators.filter(word =>
-      !this.includesAbsentLetters(word)
       // no positioned letters
       && this.positionedLetters.every(([letter]) => !word.includes(letter))
       // no vague letters
