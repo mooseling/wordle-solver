@@ -4,13 +4,13 @@
 // Currently this is just based on a letter-variety score
 // Words like "doddy" that guess a single letter 3 times are really bad
 export function sort(dictionary) {
-  const gradedDictionary = dictionary.map(word => ({word, grade:grade(word)}));
+  const gradedDictionary = dictionary.map(word => ({word, grade:countUniqueLetters(word)}));
   const sortedGradedDictionary = gradedDictionary.sort((a, b) => b.grade - a.grade); // Sort desc
   return sortedGradedDictionary.map(({word}) => word);
 }
 
 
-function grade(word) {
+export function countUniqueLetters(word) {
   const lettersInWord = [];
   [...word].forEach(letter => {
     if (!lettersInWord.includes(letter))
