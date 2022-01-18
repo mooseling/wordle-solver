@@ -43,3 +43,36 @@ function getWordsFromTBody(tBody) {
 function filterWordsAgainstDictionary(wordsToFilter, dictionary) {
   return wordsToFilter.filter(([word]) => dictionary.includes(word));
 }
+
+
+
+export function getInitialLetterObject(initialValue) {
+  return {
+    a: initialValue,
+    b: initialValue,
+    c: initialValue,
+    d: initialValue,
+    e: initialValue,
+    f: initialValue,
+    g: initialValue,
+    h: initialValue,
+    i: initialValue,
+    j: initialValue,
+    k: initialValue,
+    l: initialValue,
+    m: initialValue,
+    n: initialValue,
+    o: initialValue,
+    p: initialValue,
+    q: initialValue,
+    r: initialValue,
+    s: initialValue,
+    t: initialValue,
+    u: initialValue,
+    v: initialValue,
+    w: initialValue,
+    x: initialValue,
+    y: initialValue,
+    z: initialValue,
+  };
+}

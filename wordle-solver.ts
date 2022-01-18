@@ -2,8 +2,16 @@
 import {dictionary} from './wordle-dictionary.ts'; // Dictionary of legal guesses
 // @ts-ignore
 import {commonWords} from './common-words.ts'; // Smaller dictionary, more likely to be the answer
+// @ts-ignore
+import {countUniqueLetters, getInitialLetterObject} from './utils.js';
 
-// Everything is lower case!
+// ================ Current strategy ================
+// The aim is to reduce the common word list as fast as possible
+// So we must decide which is the best word to guess
+// We want words with as many different letters as possible
+// And we're particularly looking for "divisive" letters:
+// Letters that appear in nearly 50% of the remaining words
+// Each such letter guessed should cut the pool down by ~50%
 
 
 export class Solver {
@@ -15,11 +23,6 @@ export class Solver {
   private remainingLegalWords: string[] // We'll guess from here to narrow things down
   private remainingCommonWords: string[] // And guess from here if we think we have a winner
 
-  // The trick to Wordle is guessing words that you know are wrong, but tell you something useful
-  // All indicator words must not contain letters we know are absent
-  private strongIndicators: string[] // Contain no known letters
-  private weakIndicators: string[] // Contain known letters, ignore positions
-
   constructor() {
     this.guesses = 0;
     this.positionedLetters = [];
@@ -28,38 +31,27 @@ export class Solver {
     this.letterCounts = {};
     this.remainingCommonWords = commonWords.slice()
     this.remainingLegalWords = dictionary.slice();
-    this.weakIndicators = dictionary.slice();
-    this.strongIndicators = dictionary.slice();
   }
 
   // Find the best word to guess from the remaining words
   getNextGuess(): string {
     this.guesses++;
-    if (this.guesses === 1)
-      return 'teach'; // Seems like a good first guess
+
     if (this.guesses === 6) { // Last guess!
       if (this.remainingCommonWords.length)
         return this.remainingCommonWords[0]; // Best shot
       return this.remainingLegalWords[0]; // Best shot plan B
     }
 
-    // If there's only one common word left, guess it
-    if (this.remainingCommonWords.length === 1)
+    // If we're down to 1 or 2 options, we just go for it
+    if (this.remainingCommonWords.length === 1 || this.remainingCommonWords.length === 2)
       return this.remainingCommonWords[0];
-    // If there's only one legal word left, guess it
-    if (this.remainingLegalWords.length === 1)
+    if (this.remainingLegalWords.length === 1 || this.remainingLegalWords.length === 2)
       return this.remainingLegalWords[0];
 
-    // ... Otherwise we'll try more indicator words
-    if (this.strongIndicators.length)
-      return this.strongIndicators[0];
-    if (this.weakIndicators.length)
-      return this.weakIndicators[0];
-
-    // If indicator words are all somehow exhausted, make best guesses
     if (this.remainingCommonWords.length)
-      return this.remainingCommonWords[0];
-    return this.remainingLegalWords[0];
+      return this.sortDictionary(dictionary, this.remainingCommonWords)[0];
+    return this.sortDictionary(dictionary, this.remainingLegalWords)[0];
   }
 
 
@@ -84,7 +76,7 @@ export class Solver {
             lettersFound[letter]++;
           else
             lettersFound[letter] = 1;
-            break;
+          break;
         case '~': // Letter is present but in wrong position
           if (!this.vagueLetters.some(([_letter, _position]) => _letter === letter && _position === position))
             this.vagueLetters.push([letter, position]);
@@ -105,8 +97,8 @@ export class Solver {
 
     // Now that knowldge is updated, filter our word lists
     this.filterRemainingWords();
-    this.filterStrongIndicatorWords();
-    this.filterWeakIndicatorWords();
+
+    console.log(`Remaining: ${this.remainingCommonWords.length} common words, ${this.remainingLegalWords.length} legal words`);
   }
 
 
@@ -122,25 +114,6 @@ export class Solver {
       && this.matchesPositionedLetters(word)
       && this.matchesVagueLetters(word)
       && this.matchesLetterCounts(word)
-    );
-  }
-
-
-  // Strong indicators are words with no known letters and no absent letters
-  // They help us find new letters entirely
-  filterStrongIndicatorWords(): void {
-      // no positioned letters
-      && this.positionedLetters.every(([letter]) => !word.includes(letter))
-      // no vague letters
-      && this.vagueLetters.every(([letter]) => !word.includes(letter))
-    );
-  }
-
-
-  // Weak indicators are words with known letters, but not necessarily in the right position
-  filterWeakIndicatorWords(): void {
-    this.weakIndicators = this.weakIndicators.filter(word =>
-      !this.includesAbsentLetters(word)
     );
   }
 
@@ -175,4 +148,55 @@ export class Solver {
     }
     return true;
   }
+
+
+  // Some letters are more important to guess
+  // It depends on the remaining words
+  sortDictionary(dictionaryToSort:string[], weightingDictionary:string[]): string[] {
+    const letterScores: {[letter:string]: number} = getLetterDivisivenesses(weightingDictionary);
+
+    // Sort primarily by number of unique letters in the word
+    // And secondly by the divisiveness of the letters in words
+    // We want to test letters that will split the guess pool in half
+    return dictionaryToSort.sort((a, b) => {
+      const aUniqueLetters = countUniqueLetters(a);
+      const bUniqueLetters = countUniqueLetters(b);
+      if (aUniqueLetters === bUniqueLetters)
+        return getWordScore(b) - getWordScore(a);
+      return bUniqueLetters - aUniqueLetters;
+    });
+
+
+    // Word weight based on how useful its letters are
+    function getWordScore(word: string) {
+      return word.split('').reduce(
+        (total, letter) => total += letterScores[letter],
+        0);
+    }
+  }
+}
+
+
+
+// Score letters by how closely to 50% of the words they appear in
+export function getLetterDivisivenesses(dictionary: string[]): {[letter:string]:number} {
+  const letterAppearances:{[letter:string]:number} = getInitialLetterObject(0);
+  const letterScores:{[letter:string]:number} = getInitialLetterObject(0);
+
+  dictionary.forEach(word => {
+    const wordLetterAppearances = getInitialLetterObject(false);
+    word.split('').forEach(letter => {
+      if (!wordLetterAppearances[letter]) { // Only count letters once per words
+        wordLetterAppearances[letter] = true;
+        letterAppearances[letter]++;
+      }
+    });
+  });
+
+  for (const letter in letterAppearances) {
+    const appearances = letterAppearances[letter];
+    letterScores[letter] = 1/Math.abs((dictionary.length / 2) - appearances);
+  }
+
+  return letterScores;
 }
