@@ -3,7 +3,7 @@ import {dictionary} from './wordle-dictionary.ts'; // Dictionary of legal guesse
 // @ts-ignore
 import {commonWords} from './common-words.ts'; // Smaller dictionary, more likely to be the answer
 // @ts-ignore
-import {countUniqueLetters, getInitialLetterObject} from './utils.js';
+import {countUniqueLetters} from './utils.js';
 
 // ================ Current strategy ================
 // The aim is to reduce the common word list as fast as possible
@@ -32,6 +32,7 @@ export class Solver {
     this.remainingCommonWords = commonWords.slice()
     this.remainingLegalWords = dictionary.slice();
   }
+
 
   // Find the best word to guess from the remaining words
   getNextGuess(): string {
@@ -179,12 +180,12 @@ export class Solver {
 
 
 // Score letters by how closely to 50% of the words they appear in
-export function getLetterDivisivenesses(dictionary: string[]): {[letter:string]:number} {
-  const letterAppearances:{[letter:string]:number} = getInitialLetterObject(0);
-  const letterScores:{[letter:string]:number} = getInitialLetterObject(0);
+function getLetterDivisivenesses(dictionary: string[]): {[letter:string]:number} {
+  const letterAppearances:{[letter:string]:number} = getAlphabetObject(0);
+  const letterScores:{[letter:string]:number} = getAlphabetObject(0);
 
   dictionary.forEach(word => {
-    const wordLetterAppearances = getInitialLetterObject(false);
+    const wordLetterAppearances = getAlphabetObject(false);
     word.split('').forEach(letter => {
       if (!wordLetterAppearances[letter]) { // Only count letters once per words
         wordLetterAppearances[letter] = true;
@@ -199,4 +200,38 @@ export function getLetterDivisivenesses(dictionary: string[]): {[letter:string]:
   }
 
   return letterScores;
+}
+
+
+// In a few places we need to record data against letters
+// Simpler syntax if we can initialise the whole thing in one go
+function getAlphabetObject<Type>(initialValue: Type): {[letter:string]: Type} {
+  return {
+    a: initialValue,
+    b: initialValue,
+    c: initialValue,
+    d: initialValue,
+    e: initialValue,
+    f: initialValue,
+    g: initialValue,
+    h: initialValue,
+    i: initialValue,
+    j: initialValue,
+    k: initialValue,
+    l: initialValue,
+    m: initialValue,
+    n: initialValue,
+    o: initialValue,
+    p: initialValue,
+    q: initialValue,
+    r: initialValue,
+    s: initialValue,
+    t: initialValue,
+    u: initialValue,
+    v: initialValue,
+    w: initialValue,
+    x: initialValue,
+    y: initialValue,
+    z: initialValue,
+  };
 }
