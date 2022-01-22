@@ -2,8 +2,6 @@
 import {dictionary} from './wordle-dictionary.ts'; // Dictionary of legal guesses
 // @ts-ignore
 import {commonWords} from './common-words.ts'; // Smaller dictionary, more likely to be the answer
-// @ts-ignore
-import {countUniqueLetters} from './utils.js';
 
 // ================ Current strategy ================
 // The aim is to reduce the common word list as fast as possible
@@ -200,6 +198,16 @@ function getLetterDivisivenesses(dictionary: string[]): {[letter:string]:number}
   }
 
   return letterScores;
+}
+
+
+export function countUniqueLetters(word:string): number {
+  const lettersInWord = [];
+  [...word].forEach(letter => {
+    if (!lettersInWord.includes(letter))
+      lettersInWord.push(letter);
+  });
+  return lettersInWord.length;
 }
 
 
