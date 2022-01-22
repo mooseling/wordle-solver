@@ -1,0 +1,67 @@
+body {
+  font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
+  background-color: #121213;
+}
+
+.guesses-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.guess, #results-input {
+  display: flex;
+  justify-content: center;
+  margin-top: 10pt;
+}
+
+.guess.future {
+  display: none;
+}
+
+#results-input {
+  margin-top: 0;
+}
+
+.letter {
+  border: 2pt solid #3a3a3c;
+  color: #d7dadc;
+  font-weight: bold;
+  font-size: 2rem;
+  line-height: 2rem;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.letter, .letter-result-input {
+  height: 50pt;
+  width: 50pt;
+  background-color: black;
+  margin: 0 5pt;
+  box-sizing: border-box;
+}
+
+.letter-result-input {
+  background-color: unset;
+  height: unset;
+  display: flex;
+  flex-direction: column;
+}
+
+.letter-result {
+  height: 50pt;
+  width: 50pt;
+  margin-top: 10pt;
+}
+
+.letter[result="correct"], .letter-result[result="correct"] {
+  background-color: #538d4e;
+}
+
+.letter[result="present"], .letter-result[result="present"] {
+  background-color: #b59f3b;
+}
+
+.letter[result="absent"], .letter-result[result="absent"] {
+  background-color: #3a3a3c;
+}
