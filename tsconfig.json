@@ -1,8 +1,9 @@
 {
     "compilerOptions": {
-    "module": "es6",
-    "lib": ["esnext", "dom"],
-    "target": "esnext",
-    "noEmit": true
+      "rootDir": "src",
+      "outDir": "dist",
+      "module": "es6",
+      "lib": ["esnext", "dom"],
+      "target": "esnext",
   }
 }
