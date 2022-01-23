@@ -39,6 +39,7 @@ body {
   background-color: black;
   margin: 0 5pt;
   box-sizing: border-box;
+  text-transform: capitalize;
 }
 
 .letter-result-input {
@@ -52,6 +53,7 @@ body {
   height: 50pt;
   width: 50pt;
   margin-top: 10pt;
+  cursor: pointer;
 }
 
 .letter[result="correct"], .letter-result[result="correct"] {
