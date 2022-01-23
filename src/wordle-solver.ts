@@ -1,7 +1,5 @@
-// @ts-ignore
-import {dictionary} from './wordle-dictionary.ts'; // Dictionary of legal guesses
-// @ts-ignore
-import {commonWords} from './common-words.ts'; // Smaller dictionary, more likely to be the answer
+import {dictionary} from './wordle-dictionary.js'; // Dictionary of legal guesses
+import {commonWords} from './common-words.js'; // Smaller dictionary, more likely to be the answer
 
 // ================ Current strategy ================
 // The aim is to reduce the common word list as fast as possible
